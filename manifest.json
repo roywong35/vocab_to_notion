@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Vocab to Notion",
+  "version": "1.0",
+  "description": "Highlight a word and add it to your Notion vocabulary list.",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Vocab to Notion"
+  }
+}
