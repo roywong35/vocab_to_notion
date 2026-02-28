@@ -1,3 +1,5 @@
+let pendingContext = "";
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "add-vocab",
@@ -6,13 +8,22 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type === "CONTEXT_CAPTURED") {
+    pendingContext = msg.context ?? "";
+  }
+});
+
+chrome.contextMenus.onClicked.addListener((info) => {
   if (info.menuItemId !== "add-vocab") return;
 
-  const selectedText = info.selectionText.trim();
-  console.log("[Vocab to Notion] Selected word:", selectedText);
+  const word = info.selectionText.trim();
+  if (!word) return;
 
-  chrome.storage.session.set({ selectedWord: selectedText }, () => {
+  console.log("[Vocab to Notion] Word:", word);
+  console.log("[Vocab to Notion] Context:", pendingContext);
+
+  chrome.storage.session.set({ word, context: pendingContext }, () => {
     chrome.action.openPopup();
   });
 });

@@ -13,42 +13,283 @@
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        width: 260px;
-        padding: 20px;
+        width: 360px;
         background: #ffffff;
         color: #1a1a1a;
       }
 
-      h1 {
-        font-size: 14px;
-        font-weight: 600;
-        color: #6b6b6b;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 12px;
+      /* ── Header ── */
+      .header {
+        padding: 18px 16px 12px;
+        border-bottom: 1px solid #f0f0f0;
       }
 
-      #word {
-        font-size: 22px;
+      .word-row {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .word {
+        font-size: 26px;
         font-weight: 700;
         color: #1a1a1a;
         word-break: break-word;
-        min-height: 32px;
+        line-height: 1.2;
       }
 
-      #empty {
+      .pronunciation {
+        font-size: 14px;
+        color: #888;
+        font-style: italic;
+        flex-shrink: 0;
+      }
+
+      .speak-btn {
+        margin-left: auto;
+        flex-shrink: 0;
+        background: none;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #666;
+        transition: background 0.15s, border-color 0.15s;
+      }
+
+      .speak-btn:hover {
+        background: #f5f5f5;
+        border-color: #bbb;
+      }
+
+      .pos-row {
+        margin-top: 8px;
+      }
+
+      .pos-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: #f0f0f0;
+        color: #555;
+        letter-spacing: 0.03em;
+      }
+
+      /* ── Form body ── */
+      .form-body {
+        padding: 14px 16px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .field-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: #aaa;
+      }
+
+      textarea {
+        width: 100%;
+        resize: vertical;
+        font-family: inherit;
+        font-size: 13px;
+        line-height: 1.55;
+        color: #1a1a1a;
+        border: 1px solid #e8e8e8;
+        border-radius: 6px;
+        padding: 8px 10px;
+        background: #fafafa;
+        transition: border-color 0.15s, background 0.15s;
+        min-height: 56px;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: #aaa;
+        background: #fff;
+      }
+
+      .example-translation {
+        font-size: 12px;
+        color: #999;
+        font-style: italic;
+        line-height: 1.5;
+        padding: 0 2px;
+        min-height: 18px;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        font-family: inherit;
+        font-size: 13px;
+        color: #1a1a1a;
+        border: 1px solid #e8e8e8;
+        border-radius: 6px;
+        padding: 8px 10px;
+        background: #fafafa;
+        transition: border-color 0.15s, background 0.15s;
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: #aaa;
+        background: #fff;
+      }
+
+      input[type="text"]::placeholder {
+        color: #ccc;
+      }
+
+      /* ── Save button ── */
+      .save-btn {
+        width: 100%;
+        padding: 10px;
+        background: #1a1a1a;
+        color: #fff;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .save-btn:hover {
+        background: #333;
+      }
+
+      .save-btn:disabled {
+        background: #ccc;
+        cursor: default;
+      }
+
+      /* ── Loading skeleton ── */
+      .skeleton {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .skel-line {
+        height: 12px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+      }
+
+      .skel-line.short  { width: 40%; }
+      .skel-line.medium { width: 65%; }
+      .skel-line.long   { width: 88%; }
+
+      @keyframes shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+
+      /* ── States ── */
+      .message {
+        padding: 20px 16px;
         font-size: 13px;
         color: #9b9b9b;
         font-style: italic;
+        line-height: 1.5;
+      }
+
+      .error-text {
+        color: #c62828;
+        font-style: normal;
+        font-weight: 600;
+      }
+
+      .hidden {
+        display: none !important;
       }
     </style>
   </head>
   <body>
-    <h1>Selected Word</h1>
-    <p id="word"></p>
-    <p id="empty" style="display: none">
+
+    <!-- Empty state -->
+    <p id="empty-state" class="message hidden">
       No word selected. Highlight text and right-click to add vocab.
     </p>
+
+    <!-- Main content -->
+    <div id="main" class="hidden">
+
+      <!-- Header -->
+      <div class="header">
+        <div class="word-row">
+          <span id="word" class="word"></span>
+          <span id="pronunciation" class="pronunciation hidden"></span>
+          <button id="speak-btn" class="speak-btn" title="Pronounce">&#128264;</button>
+        </div>
+        <div class="pos-row">
+          <span id="pos-badge" class="pos-badge hidden"></span>
+        </div>
+      </div>
+
+      <!-- Loading skeleton -->
+      <div id="loading" class="skeleton">
+        <div class="skel-line medium"></div>
+        <div class="skel-line long"></div>
+        <div class="skel-line short"></div>
+        <div class="skel-line long"></div>
+        <div class="skel-line medium"></div>
+      </div>
+
+      <!-- Form fields -->
+      <div id="form-body" class="form-body hidden">
+
+        <div class="field">
+          <span class="field-label">Meaning</span>
+          <textarea id="meaning-input" rows="3"></textarea>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Example</span>
+          <textarea id="example-input" rows="2"></textarea>
+          <p id="example-translation" class="example-translation"></p>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Tags</span>
+          <input type="text" id="tags-input" placeholder="e.g. N2, formal, business" />
+        </div>
+
+        <button class="save-btn" id="save-btn" disabled>Save to Notion</button>
+
+      </div>
+
+      <!-- Error state -->
+      <p id="error-state" class="message hidden">
+        <span class="error-text">Could not load definition.</span><br />
+        Check your Gemini API key in config.js and try again.
+      </p>
+
+    </div>
+
+    <script src="config.js"></script>
+    <script src="llmProvider.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>
