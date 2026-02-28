@@ -1,7 +1,48 @@
 const DEFAULT_LANG = "zh-TW";
 
+const PENCIL_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>`;
+const CHECK_ICON  = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+const UI_LABELS = {
+  "zh-TW": { meaning: "含義", example: "例子", tags: "標籤" },
+  en:      { meaning: "Meaning", example: "Example", tags: "Tags" },
+  ja:      { meaning: "意味", example: "例文", tags: "タグ" },
+};
+
 function show(el) { el.classList.remove("hidden"); }
 function hide(el) { el.classList.add("hidden"); }
+
+function setupEditToggle(viewId, inputId, btnId) {
+  const view  = document.getElementById(viewId);
+  const input = document.getElementById(inputId);
+  const btn   = document.getElementById(btnId);
+
+  btn.innerHTML = PENCIL_ICON;
+
+  btn.addEventListener("click", () => {
+    const isEditing = !input.classList.contains("hidden");
+    if (isEditing) {
+      view.textContent = input.value;
+      hide(input);
+      show(view);
+      btn.innerHTML = PENCIL_ICON;
+      btn.title = "Edit";
+    } else {
+      input.value = view.textContent;
+      hide(view);
+      show(input);
+      input.focus();
+      btn.innerHTML = CHECK_ICON;
+      btn.title = "Done";
+    }
+  });
+}
+
+function highlightWordInExample(sentence, word) {
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${escaped})`, "gi");
+  return sentence.replace(regex, "<strong>$1</strong>");
+}
 
 function isJapanesePronunciation(text) {
   return /[\u3040-\u30FF]/.test(text);
@@ -25,7 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadingEl     = document.getElementById("loading");
   const formBodyEl    = document.getElementById("form-body");
   const errorStateEl  = document.getElementById("error-state");
+  const meaningView   = document.getElementById("meaning-view");
   const meaningInput  = document.getElementById("meaning-input");
+  const exampleView   = document.getElementById("example-view");
   const exampleInput  = document.getElementById("example-input");
   const exampleTranslationEl = document.getElementById("example-translation");
   const tagsInput     = document.getElementById("tags-input");
@@ -45,6 +88,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     chrome.storage.sync.get("preferredLang", async (syncResult) => {
       const preferredLang = syncResult.preferredLang ?? DEFAULT_LANG;
+      const labels = UI_LABELS[preferredLang] ?? UI_LABELS[DEFAULT_LANG];
+
+      document.getElementById("meaning-label").textContent = labels.meaning;
+      document.getElementById("example-label").textContent = labels.example;
+      document.getElementById("tags-label").textContent    = labels.tags;
 
       let currentPronunciation = "";
 
@@ -66,14 +114,20 @@ document.addEventListener("DOMContentLoaded", () => {
           show(posBadgeEl);
         }
 
-        // Populate editable fields
-        meaningInput.value = data.meaning;
-        exampleInput.value = data.example_sentence;
+        // Populate view elements and textarea values
+        meaningView.textContent  = data.meaning;
+        meaningInput.value       = data.meaning;
+        exampleView.innerHTML    = highlightWordInExample(data.example_sentence, word);
+        exampleInput.value       = data.example_sentence;
         exampleTranslationEl.textContent = data.example_translation;
 
         // Show form, hide loading
         hide(loadingEl);
         show(formBodyEl);
+
+        // Wire up edit toggles
+        setupEditToggle("meaning-view", "meaning-input", "meaning-edit-btn");
+        setupEditToggle("example-view", "example-input", "example-edit-btn");
 
         // Enable save button (Notion integration will wire this up later)
         saveBtn.disabled = false;
@@ -81,6 +135,13 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         console.error("[Vocab to Notion] Error:", err);
         hide(loadingEl);
+        if (err.code === "RATE_LIMITED") {
+          document.getElementById("error-title").textContent  = "Rate limit reached.";
+          document.getElementById("error-detail").textContent = "Too many requests sent to Gemini. Wait a moment and try again.";
+        } else {
+          document.getElementById("error-title").textContent  = "Could not load definition.";
+          document.getElementById("error-detail").textContent = "Check your Gemini API key in config.js and try again.";
+        }
         show(errorStateEl);
       }
     });

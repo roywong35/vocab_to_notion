@@ -20,16 +20,16 @@ Return ONLY a valid JSON object with exactly these fields — no markdown, no ex
 
 {
   "word": "<the word as given>",
-  "part_of_speech": "<e.g. noun, verb, adjective>",
+  "part_of_speech": "<part of speech written in ${langLabel}, e.g. for Traditional Chinese: 名詞/動詞/形容詞, for Japanese: 名詞/動詞/形容詞, for English: noun/verb/adjective>",
   "pronunciation": "<IPA notation for English words; hiragana reading for Japanese words>",
-  "meaning": "<one concise context-aware meaning written in ${langLabel}. If the contextual meaning differs significantly from the general meaning, append a short clarification in parentheses at the end.>",
+  "meaning": "<written in ${langLabel}. Format: 'DIRECT_TRANSLATION；EXPLANATION' where DIRECT_TRANSLATION is the shortest equivalent word(s), and EXPLANATION is a concise definition that describes the concept WITHOUT repeating or restating the direct translation word(s). The explanation must add new information, not echo the translation. Example: '壓迫；殘酷或不公正的統治與權力行使' (not '壓迫；壓迫或...'). If the contextual meaning differs from the general meaning, append a short clarification in parentheses.>",
   "example_sentence": "<one short natural sentence written in the word's OWN language (not the preferred language) that uses the word itself>",
   "example_translation": "<translation of the example_sentence into ${langLabel}>"
 }
 
 Rules:
 - Detect the word's language automatically from the word itself.
-- The meaning and example_translation must be in ${langLabel}.
+- The part_of_speech, meaning, and example_translation must all be in ${langLabel}.
 - The example_sentence must be in the word's own language and must contain the word.
 - Keep everything concise. meaning should be 1–2 sentences max.
 - Return ONLY the JSON object. No other text.`;
@@ -51,8 +51,13 @@ async function getDefinition(word, context, preferredLang) {
   );
 
   if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${err}`);
+    if (res.status === 429) {
+      const err = new Error("Rate limit exceeded. Too many requests sent to Gemini API.");
+      err.code = "RATE_LIMITED";
+      throw err;
+    }
+    const errText = await res.text();
+    throw new Error(`Gemini API error ${res.status}: ${errText}`);
   }
 
   const json = await res.json();

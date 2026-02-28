@@ -20,7 +20,7 @@
 
       /* ── Header ── */
       .header {
-        padding: 18px 16px 12px;
+        padding: 18px 16px 8px;
         border-bottom: 1px solid #f0f0f0;
       }
 
@@ -69,23 +69,22 @@
       }
 
       .pos-row {
-        margin-top: 8px;
+        margin-top: 6px;
       }
 
       .pos-badge {
         display: inline-block;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 600;
-        padding: 2px 8px;
-        border-radius: 4px;
-        background: #f0f0f0;
-        color: #555;
-        letter-spacing: 0.03em;
+        color: #333;
+        padding-left: 9px;
+        border-left: 3px solid #555;
+        line-height: 1.2;
       }
 
       /* ── Form body ── */
       .form-body {
-        padding: 14px 16px 16px;
+        padding: 8px 16px 16px;
         display: flex;
         flex-direction: column;
         gap: 14px;
@@ -97,12 +96,44 @@
         gap: 5px;
       }
 
+      .field-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
       .field-label {
         font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.07em;
         text-transform: uppercase;
         color: #aaa;
+      }
+
+      .edit-btn {
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 600;
+        color: #aaa;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        transition: color 0.15s;
+      }
+
+      .edit-btn:hover {
+        color: #555;
+      }
+
+      .field-value {
+        font-size: 13px;
+        line-height: 1.55;
+        color: #1a1a1a;
+        padding: 2px 0;
+        word-break: break-word;
       }
 
       textarea {
@@ -261,18 +292,26 @@
       <div id="form-body" class="form-body hidden">
 
         <div class="field">
-          <span class="field-label">Meaning</span>
-          <textarea id="meaning-input" rows="3"></textarea>
+          <div class="field-header">
+            <span class="field-label" id="meaning-label">Meaning</span>
+            <button class="edit-btn" id="meaning-edit-btn" title="Edit"></button>
+          </div>
+          <p id="meaning-view" class="field-value"></p>
+          <textarea id="meaning-input" rows="3" class="hidden"></textarea>
         </div>
 
         <div class="field">
-          <span class="field-label">Example</span>
-          <textarea id="example-input" rows="2"></textarea>
+          <div class="field-header">
+            <span class="field-label" id="example-label">Example</span>
+            <button class="edit-btn" id="example-edit-btn" title="Edit"></button>
+          </div>
+          <p id="example-view" class="field-value"></p>
+          <textarea id="example-input" rows="2" class="hidden"></textarea>
           <p id="example-translation" class="example-translation"></p>
         </div>
 
         <div class="field">
-          <span class="field-label">Tags</span>
+          <span class="field-label" id="tags-label">Tags</span>
           <input type="text" id="tags-input" placeholder="e.g. N2, formal, business" />
         </div>
 
@@ -282,8 +321,8 @@
 
       <!-- Error state -->
       <p id="error-state" class="message hidden">
-        <span class="error-text">Could not load definition.</span><br />
-        Check your Gemini API key in config.js and try again.
+        <span class="error-text" id="error-title">Could not load definition.</span><br />
+        <span id="error-detail">Check your Gemini API key in config.js and try again.</span>
       </p>
 
     </div>
