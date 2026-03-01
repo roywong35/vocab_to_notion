@@ -1,6 +1,11 @@
-document.addEventListener("contextmenu", () => {
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.type !== "GET_CONTEXT") return;
+
   const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0 || !sel.toString().trim()) return;
+  if (!sel || sel.rangeCount === 0 || !sel.toString().trim()) {
+    sendResponse({ context: "" });
+    return;
+  }
 
   const selectedText = sel.toString();
   const range = sel.getRangeAt(0);
@@ -11,5 +16,5 @@ document.addEventListener("contextmenu", () => {
   const end = Math.min(parentText.length, idx + selectedText.length + 250);
   const context = idx === -1 ? "" : parentText.slice(start, end).trim();
 
-  chrome.runtime.sendMessage({ type: "CONTEXT_CAPTURED", context });
+  sendResponse({ context });
 });

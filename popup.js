@@ -4,8 +4,8 @@ const PENCIL_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="
 const CHECK_ICON  = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
 const UI_LABELS = {
-  "zh-TW": { meaning: "含義", example: "例子", tags: "標籤" },
-  en:      { meaning: "Meaning", example: "Example", tags: "Tags" },
+  "zh-TW": { meaning: "定義", example: "例子", tags: "標籤" },
+  en:      { meaning: "Definition", example: "Example", tags: "Tags" },
   ja:      { meaning: "意味", example: "例文", tags: "タグ" },
 };
 
@@ -95,31 +95,77 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("tags-label").textContent    = labels.tags;
 
       let currentPronunciation = "";
+      let llmData = null;
 
       speakBtn.addEventListener("click", () => speak(word, currentPronunciation));
 
+      async function handleSave() {
+        const payload = {
+          word,
+          pronunciation: currentPronunciation,
+          part_of_speech: posBadgeEl.textContent,
+          meaning: meaningInput.value,
+          example_sentence: exampleInput.value,
+          tags: tagsInput.value,
+          detected_language: llmData?.detected_language ?? "EN",
+          context,
+        };
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
+        console.log("[Vocab to Notion] Saving payload:", payload);
+
+        try {
+          await saveToNotion(payload);
+          saveBtn.classList.add("saved");
+          saveBtn.textContent = "Saved! ✓";
+          setTimeout(() => {
+            saveBtn.classList.remove("saved");
+            saveBtn.textContent = "Save to Notion";
+            saveBtn.disabled = false;
+          }, 2500);
+        } catch (err) {
+          console.error("[Vocab to Notion] Notion save error:", err.message, "code:", err.notionCode);
+          saveBtn.classList.add("save-error");
+          if (err.status === 401) {
+            saveBtn.textContent = "Auth failed — check token";
+          } else if (err.status === 404) {
+            saveBtn.textContent = "Database not found — check ID";
+          } else if (err.message && err.message.length < 60) {
+            saveBtn.textContent = err.message;
+          } else {
+            saveBtn.textContent = "Save failed — open DevTools";
+          }
+          setTimeout(() => {
+            saveBtn.classList.remove("save-error");
+            saveBtn.textContent = "Save to Notion";
+            saveBtn.disabled = false;
+          }, 5000);
+        }
+      }
+
       try {
-        const data = await getDefinition(word, context, preferredLang);
+        llmData = await getDefinition(word, context, preferredLang);
 
         // Pronunciation
-        if (data.pronunciation) {
-          currentPronunciation = data.pronunciation;
-          pronunciationEl.textContent = data.pronunciation;
+        if (llmData.pronunciation) {
+          currentPronunciation = llmData.pronunciation;
+          pronunciationEl.textContent = llmData.pronunciation;
           show(pronunciationEl);
         }
 
         // Part of speech badge
-        if (data.part_of_speech) {
-          posBadgeEl.textContent = data.part_of_speech;
+        if (llmData.part_of_speech) {
+          posBadgeEl.textContent = llmData.part_of_speech;
           show(posBadgeEl);
         }
 
         // Populate view elements and textarea values
-        meaningView.textContent  = data.meaning;
-        meaningInput.value       = data.meaning;
-        exampleView.innerHTML    = highlightWordInExample(data.example_sentence, word);
-        exampleInput.value       = data.example_sentence;
-        exampleTranslationEl.textContent = data.example_translation;
+        meaningView.textContent  = llmData.meaning;
+        meaningInput.value       = llmData.meaning;
+        exampleView.innerHTML    = highlightWordInExample(llmData.example_sentence, word);
+        exampleInput.value       = llmData.example_sentence;
+        exampleTranslationEl.textContent = llmData.example_translation;
 
         // Show form, hide loading
         hide(loadingEl);
@@ -129,8 +175,9 @@ document.addEventListener("DOMContentLoaded", () => {
         setupEditToggle("meaning-view", "meaning-input", "meaning-edit-btn");
         setupEditToggle("example-view", "example-input", "example-edit-btn");
 
-        // Enable save button (Notion integration will wire this up later)
+        // Enable save button
         saveBtn.disabled = false;
+        saveBtn.addEventListener("click", handleSave);
 
       } catch (err) {
         console.error("[Vocab to Notion] Error:", err);

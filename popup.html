@@ -212,6 +212,22 @@
         cursor: default;
       }
 
+      .save-btn.saved {
+        background: #2e7d32;
+      }
+
+      .save-btn.saved:hover {
+        background: #388e3c;
+      }
+
+      .save-btn.save-error {
+        background: #c62828;
+      }
+
+      .save-btn.save-error:hover {
+        background: #d32f2f;
+      }
+
       /* ── Loading skeleton ── */
       .skeleton {
         padding: 16px;
@@ -312,7 +328,7 @@
 
         <div class="field">
           <span class="field-label" id="tags-label">Tags</span>
-          <input type="text" id="tags-input" placeholder="e.g. N2, formal, business" />
+          <input type="text" id="tags-input" placeholder="e.g. Slangs, Formal, Business, Idioms" />
         </div>
 
         <button class="save-btn" id="save-btn" disabled>Save to Notion</button>
@@ -329,6 +345,7 @@
 
     <script src="config.js"></script>
     <script src="llmProvider.js"></script>
+    <script src="notionProvider.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>
