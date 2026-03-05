@@ -1,7 +1,7 @@
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "add-vocab",
-    title: "Add vocab to Notion",
+    title: "Add Vocabulary to Notion",
     contexts: ["selection"],
   });
 });
@@ -26,14 +26,15 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         const range = sel.getRangeAt(0);
         const parentText =
           range.startContainer.parentElement?.textContent ?? "";
-        const idx = parentText.indexOf(selectedText);
-        if (idx === -1) return "";
-        const start = Math.max(0, idx - 250);
-        const end = Math.min(
-          parentText.length,
-          idx + selectedText.length + 250
-        );
-        return parentText.slice(start, end).trim();
+        if (!parentText.includes(selectedText)) return "";
+
+        // Split into sentences and return the one containing the word.
+        // This keeps context tight (~1 sentence) instead of a fixed 500-char window.
+        const sentences = parentText.match(/[^.!?。！？\n]+[.!?。！？\n]?/g) ?? [];
+        const match = sentences.find((s) => s.includes(selectedText))?.trim() ?? "";
+
+        // Hard cap at 200 chars as a token safety net.
+        return match.slice(0, 200);
       },
       args: [word],
     },

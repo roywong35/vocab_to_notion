@@ -9,6 +9,11 @@ const UI_LABELS = {
   ja:      { meaning: "意味", example: "例文", tags: "タグ" },
 };
 
+// Only allow word-like characters across any language.
+// Rejects quotes, brackets, angle brackets, and anything usable for prompt injection.
+const SAFE_WORD_RE = /^[\p{L}\p{N}\s'\-]+$/u;
+const MAX_WORD_LEN = 50;
+
 function show(el) { el.classList.remove("hidden"); }
 function hide(el) { el.classList.add("hidden"); }
 
@@ -57,36 +62,41 @@ function speak(word, pronunciation) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const emptyStateEl  = document.getElementById("empty-state");
-  const mainEl        = document.getElementById("main");
-  const wordEl        = document.getElementById("word");
-  const pronunciationEl = document.getElementById("pronunciation");
-  const speakBtn      = document.getElementById("speak-btn");
-  const posBadgeEl    = document.getElementById("pos-badge");
-  const loadingEl     = document.getElementById("loading");
-  const formBodyEl    = document.getElementById("form-body");
-  const errorStateEl  = document.getElementById("error-state");
-  const meaningView   = document.getElementById("meaning-view");
-  const meaningInput  = document.getElementById("meaning-input");
-  const exampleView   = document.getElementById("example-view");
-  const exampleInput  = document.getElementById("example-input");
+  const emptyStateEl        = document.getElementById("empty-state");
+  const mainEl              = document.getElementById("main");
+  const wordEl              = document.getElementById("word");
+  const pronunciationEl     = document.getElementById("pronunciation");
+  const speakBtn            = document.getElementById("speak-btn");
+  const posBadgeEl          = document.getElementById("pos-badge");
+  const loadingEl           = document.getElementById("loading");
+  const formBodyEl          = document.getElementById("form-body");
+  const errorStateEl        = document.getElementById("error-state");
+  const meaningView         = document.getElementById("meaning-view");
+  const meaningInput        = document.getElementById("meaning-input");
+  const exampleView         = document.getElementById("example-view");
+  const exampleInput        = document.getElementById("example-input");
   const exampleTranslationEl = document.getElementById("example-translation");
-  const tagsInput     = document.getElementById("tags-input");
-  const saveBtn       = document.getElementById("save-btn");
+  const tagsInput           = document.getElementById("tags-input");
+  const saveBtn             = document.getElementById("save-btn");
+  const manualWordInput     = document.getElementById("manual-word-input");
+  const manualLookupBtn     = document.getElementById("manual-lookup-btn");
+  const manualErrorEl       = document.getElementById("manual-error");
+
+  function validateManualInput(raw) {
+    if (!raw)                      return "Please enter a word.";
+    if (raw.length > MAX_WORD_LEN) return `Word must be ${MAX_WORD_LEN} characters or fewer.`;
+    if (!SAFE_WORD_RE.test(raw))   return "Word contains invalid characters.";
+    return null;
+  }
 
   chrome.storage.session.get(["word", "context"], (sessionResult) => {
-    const word    = sessionResult.word;
-    const context = sessionResult.context ?? "";
+    // Consume immediately so re-opening without a new selection shows empty state.
+    chrome.storage.session.remove(["word", "context"]);
 
-    if (!word) {
-      show(emptyStateEl);
-      return;
-    }
+    const sessionWord    = sessionResult.word;
+    const sessionContext = sessionResult.context ?? "";
 
-    show(mainEl);
-    wordEl.textContent = word;
-
-    chrome.storage.sync.get("preferredLang", async (syncResult) => {
+    chrome.storage.sync.get("preferredLang", (syncResult) => {
       const preferredLang = syncResult.preferredLang ?? DEFAULT_LANG;
       const labels = UI_LABELS[preferredLang] ?? UI_LABELS[DEFAULT_LANG];
 
@@ -94,102 +104,138 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("example-label").textContent = labels.example;
       document.getElementById("tags-label").textContent    = labels.tags;
 
-      let currentPronunciation = "";
-      let llmData = null;
+      // ── Core lookup ─────────────────────────────────────────────────────
+      async function runLookup(word, context) {
+        hide(emptyStateEl);
+        show(mainEl);
+        wordEl.textContent = word;
 
-      speakBtn.addEventListener("click", () => speak(word, currentPronunciation));
-
-      async function handleSave() {
-        const payload = {
-          word,
-          pronunciation: currentPronunciation,
-          part_of_speech: posBadgeEl.textContent,
-          meaning: meaningInput.value,
-          example_sentence: exampleInput.value,
-          tags: tagsInput.value,
-          detected_language: llmData?.detected_language ?? "EN",
-          context,
-        };
-
+        // Reset all sub-states for repeated manual lookups
+        hide(pronunciationEl);
+        hide(posBadgeEl);
+        hide(formBodyEl);
+        hide(errorStateEl);
+        show(loadingEl);
         saveBtn.disabled = true;
-        saveBtn.textContent = "Saving...";
-        console.log("[Vocab to Notion] Saving payload:", payload);
+        saveBtn.className = "save-btn";
+        saveBtn.textContent = "Save to Notion";
+
+        let currentPronunciation = "";
+        let llmData = null;
+
+        speakBtn.onclick = () => speak(word, currentPronunciation);
+
+        async function handleSave() {
+          const payload = {
+            word,
+            pronunciation: currentPronunciation,
+            part_of_speech: posBadgeEl.textContent,
+            meaning: meaningInput.value,
+            example_sentence: exampleInput.value,
+            tags: tagsInput.value,
+            detected_language: llmData?.detected_language ?? "EN",
+            context,
+          };
+
+          saveBtn.disabled = true;
+          saveBtn.textContent = "Saving...";
+          console.log("[Vocab to Notion] Saving payload:", payload);
+
+          try {
+            const saved = await saveToNotion(payload);
+            saveBtn.removeEventListener("click", handleSave);
+            saveBtn.classList.add("saved");
+            saveBtn.textContent = "Saved! — Open in Notion ↗";
+            saveBtn.disabled = false;
+            saveBtn.addEventListener("click", () => {
+              chrome.tabs.create({ url: saved.url });
+            }, { once: true });
+          } catch (err) {
+            console.error("[Vocab to Notion] Notion save error:", err.message, "code:", err.notionCode);
+            saveBtn.classList.add("save-error");
+            if (err.status === 401) {
+              saveBtn.textContent = "Auth failed — check token";
+            } else if (err.status === 404) {
+              saveBtn.textContent = "Database not found — check ID";
+            } else if (err.message && err.message.length < 60) {
+              saveBtn.textContent = err.message;
+            } else {
+              saveBtn.textContent = "Save failed — open DevTools";
+            }
+            setTimeout(() => {
+              saveBtn.classList.remove("save-error");
+              saveBtn.textContent = "Save to Notion";
+              saveBtn.disabled = false;
+            }, 4000);
+          }
+        }
 
         try {
-          await saveToNotion(payload);
-          saveBtn.classList.add("saved");
-          saveBtn.textContent = "Saved! ✓";
-          setTimeout(() => {
-            saveBtn.classList.remove("saved");
-            saveBtn.textContent = "Save to Notion";
-            saveBtn.disabled = false;
-          }, 2500);
-        } catch (err) {
-          console.error("[Vocab to Notion] Notion save error:", err.message, "code:", err.notionCode);
-          saveBtn.classList.add("save-error");
-          if (err.status === 401) {
-            saveBtn.textContent = "Auth failed — check token";
-          } else if (err.status === 404) {
-            saveBtn.textContent = "Database not found — check ID";
-          } else if (err.message && err.message.length < 60) {
-            saveBtn.textContent = err.message;
-          } else {
-            saveBtn.textContent = "Save failed — open DevTools";
+          llmData = await getDefinition(word, context, preferredLang);
+
+          if (llmData.pronunciation) {
+            currentPronunciation = llmData.pronunciation;
+            pronunciationEl.textContent = llmData.pronunciation;
+            show(pronunciationEl);
           }
-          setTimeout(() => {
-            saveBtn.classList.remove("save-error");
-            saveBtn.textContent = "Save to Notion";
-            saveBtn.disabled = false;
-          }, 5000);
+
+          if (llmData.part_of_speech) {
+            posBadgeEl.textContent = llmData.part_of_speech;
+            show(posBadgeEl);
+          }
+
+          meaningView.textContent  = llmData.meaning;
+          meaningInput.value       = llmData.meaning;
+          exampleView.innerHTML    = highlightWordInExample(llmData.example_sentence, word);
+          exampleInput.value       = llmData.example_sentence;
+          exampleTranslationEl.textContent = llmData.example_translation;
+
+          hide(loadingEl);
+          show(formBodyEl);
+
+          setupEditToggle("meaning-view", "meaning-input", "meaning-edit-btn");
+          setupEditToggle("example-view", "example-input", "example-edit-btn");
+
+          saveBtn.disabled = false;
+          saveBtn.addEventListener("click", handleSave);
+
+        } catch (err) {
+          console.error("[Vocab to Notion] Error:", err);
+          hide(loadingEl);
+          if (err.code === "RATE_LIMITED") {
+            document.getElementById("error-title").textContent  = "Rate limit reached.";
+            document.getElementById("error-detail").textContent = "Too many requests sent to Gemini. Wait a moment and try again.";
+          } else {
+            document.getElementById("error-title").textContent  = "Could not load definition.";
+            document.getElementById("error-detail").textContent = "Check your Gemini API key in config.js and try again.";
+          }
+          show(errorStateEl);
         }
       }
+      // ────────────────────────────────────────────────────────────────────
 
-      try {
-        llmData = await getDefinition(word, context, preferredLang);
+      if (sessionWord) {
+        runLookup(sessionWord, sessionContext);
+      } else {
+        show(emptyStateEl);
+        manualWordInput.focus();
 
-        // Pronunciation
-        if (llmData.pronunciation) {
-          currentPronunciation = llmData.pronunciation;
-          pronunciationEl.textContent = llmData.pronunciation;
-          show(pronunciationEl);
+        function attempt() {
+          const raw = manualWordInput.value.trim();
+          const err = validateManualInput(raw);
+          if (err) {
+            manualErrorEl.textContent = err;
+            show(manualErrorEl);
+            return;
+          }
+          hide(manualErrorEl);
+          runLookup(raw, "");
         }
 
-        // Part of speech badge
-        if (llmData.part_of_speech) {
-          posBadgeEl.textContent = llmData.part_of_speech;
-          show(posBadgeEl);
-        }
-
-        // Populate view elements and textarea values
-        meaningView.textContent  = llmData.meaning;
-        meaningInput.value       = llmData.meaning;
-        exampleView.innerHTML    = highlightWordInExample(llmData.example_sentence, word);
-        exampleInput.value       = llmData.example_sentence;
-        exampleTranslationEl.textContent = llmData.example_translation;
-
-        // Show form, hide loading
-        hide(loadingEl);
-        show(formBodyEl);
-
-        // Wire up edit toggles
-        setupEditToggle("meaning-view", "meaning-input", "meaning-edit-btn");
-        setupEditToggle("example-view", "example-input", "example-edit-btn");
-
-        // Enable save button
-        saveBtn.disabled = false;
-        saveBtn.addEventListener("click", handleSave);
-
-      } catch (err) {
-        console.error("[Vocab to Notion] Error:", err);
-        hide(loadingEl);
-        if (err.code === "RATE_LIMITED") {
-          document.getElementById("error-title").textContent  = "Rate limit reached.";
-          document.getElementById("error-detail").textContent = "Too many requests sent to Gemini. Wait a moment and try again.";
-        } else {
-          document.getElementById("error-title").textContent  = "Could not load definition.";
-          document.getElementById("error-detail").textContent = "Check your Gemini API key in config.js and try again.";
-        }
-        show(errorStateEl);
+        manualLookupBtn.addEventListener("click", attempt);
+        manualWordInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") attempt();
+        });
       }
     });
   });
