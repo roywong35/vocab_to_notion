@@ -169,7 +169,21 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("[Vocab to Notion] Saving payload:", payload);
 
             try {
-              const saved = await saveToNotion(payload);
+              // Resolve property ID map — use cache if available, otherwise
+              // fetch from Notion and cache for next time.
+              const cacheKey = `propMap_${notionDatabaseId}`;
+              let propMap = await new Promise((resolve) =>
+                chrome.storage.sync.get(cacheKey, (r) => resolve(r[cacheKey] ?? null))
+              );
+
+              if (!propMap) {
+                console.log("[Vocab to Notion] Fetching Notion property map...");
+                propMap = await fetchPropertyMap(notionToken, notionDatabaseId);
+                chrome.storage.sync.set({ [cacheKey]: propMap });
+                console.log("[Vocab to Notion] Property map cached:", propMap);
+              }
+
+              const saved = await saveToNotion(payload, propMap);
               saveBtn.removeEventListener("click", handleSave);
               saveBtn.classList.add("saved");
               saveBtn.textContent = strings.savedBtn;
@@ -178,9 +192,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 chrome.tabs.create({ url: saved.url });
               }, { once: true });
             } catch (err) {
-              console.error("[Vocab to Notion] Notion save error:", err.message, "code:", err.notionCode);
+              console.error("[Vocab to Notion] Notion save error:", err.message, "code:", err.notionCode ?? err.code);
               saveBtn.classList.add("save-error");
-              if (err.status === 401) {
+              if (err.code === "SCHEMA_MISMATCH") {
+                // Column missing — clear the cache so next save re-fetches
+                chrome.storage.sync.remove(`propMap_${notionDatabaseId}`);
+                saveBtn.textContent = strings.saveErrorGeneric;
+              } else if (err.status === 401) {
                 saveBtn.textContent = strings.saveErrorAuth;
               } else if (err.status === 404) {
                 saveBtn.textContent = strings.saveErrorNotFound;

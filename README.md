@@ -45,6 +45,8 @@ The template has the exact column schema the extension expects:
 | Context Snippet | Text |
 | Created | Date |
 
+**Customizing your database:** You can **rename** any column (e.g. to your language) — the extension uses stable IDs and will keep working. You can **add** extra columns; they are ignored. **Do not delete** any of the columns above; removing a required column will cause saves to fail with an error. If that happens, duplicate the template again and reconnect your integration.
+
 ### 3 — Create a Notion internal integration
 
 1. Go to [notion.so/profile/integrations](https://www.notion.so/profile/integrations) → **New integration**
