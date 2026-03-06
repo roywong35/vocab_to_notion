@@ -345,24 +345,43 @@
       .hidden {
         display: none !important;
       }
+
+      .open-settings-btn {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 8px 16px;
+        background: #1a1a1a;
+        color: #fff;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .open-settings-btn:hover {
+        background: #333;
+      }
     </style>
   </head>
   <body>
 
     <!-- Empty state -->
     <div id="empty-state" class="empty-state hidden">
-      <p class="empty-hint">Highlight text on any page and right-click to add vocab.</p>
-      <p class="empty-divider">or look up a word manually</p>
+      <p class="empty-hint" id="empty-hint"></p>
+      <p class="empty-divider" id="empty-divider"></p>
       <div class="manual-lookup">
         <input
           type="text"
           id="manual-word-input"
-          maxlength="50"
-          placeholder="Enter a word…"
+          maxlength="30"
+          placeholder=""
           autocomplete="off"
           spellcheck="false"
         />
-        <button id="manual-lookup-btn" class="manual-lookup-btn">Look up</button>
+        <button id="manual-lookup-btn" class="manual-lookup-btn"></button>
       </div>
       <p id="manual-error" class="manual-error hidden"></p>
     </div>
@@ -423,14 +442,15 @@
       </div>
 
       <!-- Error state -->
-      <p id="error-state" class="message hidden">
-        <span class="error-text" id="error-title">Could not load definition.</span><br />
-        <span id="error-detail">Check your Gemini API key in config.js and try again.</span>
-      </p>
+      <div id="error-state" class="message hidden">
+        <p><span class="error-text" id="error-title">Could not load definition.</span><br />
+        <span id="error-detail">Check your API keys in Settings and try again.</span></p>
+        <button id="open-settings-btn" class="open-settings-btn hidden">Open Settings</button>
+      </div>
 
     </div>
 
-    <script src="config.js"></script>
+    <script src="i18n.js"></script>
     <script src="llmProvider.js"></script>
     <script src="notionProvider.js"></script>
     <script src="popup.js"></script>

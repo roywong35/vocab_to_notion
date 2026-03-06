@@ -37,11 +37,11 @@ Rules:
 - Return ONLY the JSON object. No other text.`;
 }
 
-async function getDefinition(word, context, preferredLang) {
+async function getDefinition(word, context, preferredLang, apiKey) {
   const prompt = buildPrompt(word, context, preferredLang);
 
   const res = await fetch(
-    `${GEMINI_ENDPOINT}?key=${CONFIG.GEMINI_API_KEY}`,
+    `${GEMINI_ENDPOINT}?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

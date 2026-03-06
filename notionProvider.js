@@ -29,6 +29,8 @@ async function saveToNotion(payload) {
     tags,
     detected_language,
     context,
+    notionToken,
+    notionDatabaseId,
   } = payload;
 
   const tagNames = tags
@@ -40,7 +42,7 @@ async function saveToNotion(payload) {
   const today = new Date().toISOString().split("T")[0];
 
   const body = {
-    parent: { database_id: CONFIG.NOTION_DATABASE_ID },
+    parent: { database_id: notionDatabaseId },
     properties: {
       Word: {
         title: [{ text: { content: word } }],
@@ -75,7 +77,7 @@ async function saveToNotion(payload) {
   const res = await fetch("https://api.notion.com/v1/pages", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${CONFIG.NOTION_TOKEN}`,
+      Authorization: `Bearer ${notionToken}`,
       "Content-Type": "application/json",
       "Notion-Version": NOTION_API_VERSION,
     },
