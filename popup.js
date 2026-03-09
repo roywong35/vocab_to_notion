@@ -114,6 +114,13 @@ document.addEventListener("DOMContentLoaded", () => {
         manualWordInput.placeholder                          = strings.lookupPlaceholder;
         manualLookupBtn.textContent                          = strings.lookupBtn;
 
+        // Donation link (same URL in i18n.js)
+        const donateEl = document.getElementById("donate-link");
+        if (donateEl) {
+          donateEl.href = DONATION_URL;
+          donateEl.textContent = strings.supportLinkText;
+        }
+
         // ── Setup required gate ──────────────────────────────────────────
         if (!geminiApiKey) {
           document.getElementById("error-title").textContent  = strings.errorSetupTitle;

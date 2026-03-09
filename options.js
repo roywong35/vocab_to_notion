@@ -21,6 +21,11 @@ function applyStrings(lang) {
   document.getElementById("options-notion-db-hint").textContent           = strings.optionsNotionDbHint;
   document.getElementById("options-notion-db-template-text").textContent  = strings.optionsNotionDbTemplateHint + " ";
   saveBtn.textContent = strings.optionsSaveBtn;
+  const donateEl = document.getElementById("options-donate-link");
+  if (donateEl) {
+    donateEl.href = DONATION_URL;
+    donateEl.textContent = strings.supportLinkText;
+  }
 }
 
 chrome.storage.sync.get(

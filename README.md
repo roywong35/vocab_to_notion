@@ -114,6 +114,12 @@ The meaning, part of speech, example translation, and all UI labels automaticall
 
 ---
 
+## Donation link
+
+The popup and options pages show a “Buy me a coffee” (or localized equivalent) link. To use your own page, set the URL in **`i18n.js`**: edit the `DONATION_URL` constant at the top (e.g. your [Buy Me a Coffee](https://buymeacoffee.com), [Ko-fi](https://ko-fi.com), or PayPal.me link).
+
+---
+
 ## License
 
 MIT

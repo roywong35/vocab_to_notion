@@ -84,7 +84,7 @@
 
       /* ── Form body ── */
       .form-body {
-        padding: 8px 16px 16px;
+        padding: 8px 16px 8px;
         display: flex;
         flex-direction: column;
         gap: 14px;
@@ -364,6 +364,22 @@
       .open-settings-btn:hover {
         background: #333;
       }
+
+      .popup-footer {
+        padding: 4px 16px 10px;
+        text-align: center;
+      }
+
+      .popup-footer a {
+        font-size: 11px;
+        color: #bbb;
+        text-decoration: none;
+      }
+
+      .popup-footer a:hover {
+        color: #888;
+        text-decoration: none;
+      }
     </style>
   </head>
   <body>
@@ -448,6 +464,9 @@
         <button id="open-settings-btn" class="open-settings-btn hidden">Open Settings</button>
       </div>
 
+      <footer class="popup-footer">
+        <a id="donate-link" href="#" target="_blank" rel="noopener">Buy me a coffee</a>
+      </footer>
     </div>
 
     <script src="i18n.js"></script>

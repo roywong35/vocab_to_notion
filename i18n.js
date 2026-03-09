@@ -1,5 +1,9 @@
 // Central strings map — all static UI text keyed by preferredLang.
 // To add a new language, add one new key here. No other files need to change.
+
+// Replace with your Buy Me a Coffee / Ko-fi / PayPal link. Used in popup and options.
+const DONATION_URL = "https://ko-fi.com/roywong35";
+
 const UI_STRINGS = {
   "zh-TW": {
     // Settings — API keys
@@ -48,6 +52,7 @@ const UI_STRINGS = {
     optionsLangHint: "定義與例句翻譯將以此語言顯示。",
     optionsSaveBtn: "儲存",
     optionsSaved: "已儲存！",
+    supportLinkText: "如果這個工具對你有幫助，不如請我飲杯咖啡？☕",
   },
 
   en: {
@@ -90,6 +95,7 @@ const UI_STRINGS = {
     optionsLangHint: "Meanings and example translations will be shown in this language.",
     optionsSaveBtn: "Save",
     optionsSaved: "Saved!",
+    supportLinkText: "If this tool helped you learn, maybe treat me to a coffee? ☕",
   },
 
   ja: {
@@ -132,6 +138,7 @@ const UI_STRINGS = {
     optionsLangHint: "意味と例文の翻訳はこの言語で表示されます。",
     optionsSaveBtn: "保存",
     optionsSaved: "保存しました！",
+    supportLinkText: "このツールが学習に役立ったら、コーヒー一杯おごっていただけると嬉しいです ☕",
   },
   "zh-CN": {
     // Settings — API keys
@@ -173,6 +180,7 @@ const UI_STRINGS = {
     optionsLangHint: "释义和例句翻译将以此语言显示。",
     optionsSaveBtn: "保存",
     optionsSaved: "已保存！",
+    supportLinkText: "如果这个工具对你有帮助，不妨请我喝杯咖啡？☕",
   },
 
   ko: {
@@ -215,6 +223,7 @@ const UI_STRINGS = {
     optionsLangHint: "의미와 예문 번역이 이 언어로 표시됩니다.",
     optionsSaveBtn: "저장",
     optionsSaved: "저장되었습니다！",
+    supportLinkText: "이 툴이 학습에 도움이 됐다면, 커피 한 잔 사주실래요? ☕",
   },
 
   es: {
@@ -257,5 +266,6 @@ const UI_STRINGS = {
     optionsLangHint: "Los significados y traducciones de ejemplos se mostrarán en este idioma.",
     optionsSaveBtn: "Guardar",
     optionsSaved: "¡Guardado!",
+    supportLinkText: "Si esta herramienta te ayudó a aprender, ¿me invitas un café? ☕",
   },
 };
