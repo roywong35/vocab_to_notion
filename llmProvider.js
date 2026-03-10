@@ -3,8 +3,11 @@ const GEMINI_ENDPOINT =
 
 const LANG_LABELS = {
   "zh-TW": "Traditional Chinese (繁體中文)",
+  "zh-CN": "Simplified Chinese (简体中文)",
   en: "English",
   ja: "Japanese (日本語)",
+  ko: "Korean (한국어)",
+  es: "Spanish (Español)",
 };
 
 function buildPrompt(word, context, preferredLang) {
