@@ -19,7 +19,8 @@ function applyStrings(lang) {
   document.getElementById("options-notion-token-hint").textContent  = strings.optionsNotionTokenHint;
   document.getElementById("options-notion-db-label").textContent          = strings.optionsNotionDbLabel;
   document.getElementById("options-notion-db-hint").textContent           = strings.optionsNotionDbHint;
-  document.getElementById("options-notion-db-template-text").textContent  = strings.optionsNotionDbTemplateHint + " ";
+  document.getElementById("options-notion-db-template-text").textContent  = strings.optionsNotionDbTemplateHint;
+  document.getElementById("options-notion-db-template-link").textContent  = strings.optionsNotionDbTemplateLinkText;
   saveBtn.textContent = strings.optionsSaveBtn;
   const donateEl = document.getElementById("options-donate-link");
   if (donateEl) {

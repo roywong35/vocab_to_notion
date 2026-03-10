@@ -13,7 +13,8 @@ const UI_STRINGS = {
     optionsNotionTokenHint: "在 Notion 整合設定頁面取得（以 ntn_ 開頭）",
     optionsNotionDbLabel: "Notion 資料庫 ID",
     optionsNotionDbHint: "Notion 資料庫網址中的 32 字元 ID",
-    optionsNotionDbTemplateHint: "還沒有資料庫？",
+    optionsNotionDbTemplateHint: "此擴充功能需要使用特定欄位格式，請先複製我們的範本：",
+    optionsNotionDbTemplateLinkText: "複製 Notion 範本 ↗",
     // Setup error state
     errorSetupTitle: "請先完成設定。",
     errorSetupDetail: "請在擴充功能設定中新增您的 API 金鑰。",
@@ -63,7 +64,8 @@ const UI_STRINGS = {
     optionsNotionTokenHint: "Found in your Notion integration settings page (starts with ntn_...)",
     optionsNotionDbLabel: "Notion Database ID",
     optionsNotionDbHint: "The 32-character ID from your Notion database URL",
-    optionsNotionDbTemplateHint: "Don't have a table yet?",
+    optionsNotionDbTemplateHint: "This extension requires specific columns to work — please duplicate our template first:",
+    optionsNotionDbTemplateLinkText: "Duplicate our Notion template ↗",
     // Setup error state
     errorSetupTitle: "Setup required.",
     errorSetupDetail: "Add your API keys in the extension Settings to get started.",
@@ -106,7 +108,8 @@ const UI_STRINGS = {
     optionsNotionTokenHint: "Notionのインテグレーション設定ページで確認（ntn_から始まる）",
     optionsNotionDbLabel: "Notion データベース ID",
     optionsNotionDbHint: "NotionデータベースURLに含まれる32文字のID",
-    optionsNotionDbTemplateHint: "データベースがまだない方は",
+    optionsNotionDbTemplateHint: "この拡張機能は特定の列が必要です。まず以下のテンプレートを複製してください：",
+    optionsNotionDbTemplateLinkText: "Notion テンプレートを複製 ↗",
     // Setup error state
     errorSetupTitle: "初期設定が必要です。",
     errorSetupDetail: "拡張機能の設定画面でAPIキーを追加してください。",
@@ -148,7 +151,8 @@ const UI_STRINGS = {
     optionsNotionTokenHint: "在 Notion 集成设置页面获取（以 ntn_ 开头）",
     optionsNotionDbLabel: "Notion 数据库 ID",
     optionsNotionDbHint: "Notion 数据库网址中的 32 位字符 ID",
-    optionsNotionDbTemplateHint: "还没有数据库？",
+    optionsNotionDbTemplateHint: "此扩展需要特定的列格式才能正常运行，请先复制我们的模板：",
+    optionsNotionDbTemplateLinkText: "复制 Notion 模板 ↗",
     // Setup error state
     errorSetupTitle: "请先完成设置。",
     errorSetupDetail: "请在扩展程序设置中添加您的 API 密钥。",
@@ -191,7 +195,8 @@ const UI_STRINGS = {
     optionsNotionTokenHint: "Notion 통합 설정 페이지에서 확인 (ntn_으로 시작)",
     optionsNotionDbLabel: "Notion 데이터베이스 ID",
     optionsNotionDbHint: "Notion 데이터베이스 URL의 32자리 ID",
-    optionsNotionDbTemplateHint: "데이터베이스가 없으신가요?",
+    optionsNotionDbTemplateHint: "이 확장 프로그램은 특정 열 구조가 필요합니다. 먼저 템플릿을 복제해 주세요:",
+    optionsNotionDbTemplateLinkText: "Notion 템플릿 복제 ↗",
     // Setup error state
     errorSetupTitle: "설정이 필요합니다.",
     errorSetupDetail: "확장 프로그램 설정에서 API 키를 추가해 주세요.",
@@ -234,7 +239,8 @@ const UI_STRINGS = {
     optionsNotionTokenHint: "Encuéntralo en la página de configuración de la integración de Notion (empieza por ntn_...)",
     optionsNotionDbLabel: "ID de base de datos de Notion",
     optionsNotionDbHint: "El ID de 32 caracteres de la URL de tu base de datos de Notion",
-    optionsNotionDbTemplateHint: "¿Aún no tienes una tabla?",
+    optionsNotionDbTemplateHint: "Esta extensión requiere columnas específicas para funcionar. Primero duplica nuestra plantilla:",
+    optionsNotionDbTemplateLinkText: "Duplicar plantilla de Notion ↗",
     // Setup error state
     errorSetupTitle: "Configuración requerida.",
     errorSetupDetail: "Añade tus claves API en los ajustes de la extensión para empezar.",
